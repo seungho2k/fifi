@@ -12,6 +12,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/Fifi" "$APP/Contents/MacOS/fifi"
 cp Support/Info.plist "$APP/Contents/Info.plist"
+cp Support/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 # Sign with the local "fifi local" certificate when it exists (scripts/make-signing-cert.sh),
 # so the Accessibility permission survives rebuilds; otherwise ad-hoc.
 IDENTITY="-"

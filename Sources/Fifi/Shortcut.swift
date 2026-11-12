@@ -14,20 +14,11 @@ struct Shortcut: Equatable, Hashable {
 
     var modifierFlags: NSEvent.ModifierFlags { NSEvent.ModifierFlags(rawValue: modifiers) }
 
-    static let returnKey: UInt16 = 36
+    static let space: UInt16 = 49
 
-    /// `fill-window`: ⌃⌥↩
-    static let fillWindow = Shortcut(keyCode: returnKey, modifiers: [.control, .option])
-    /// `fill-all`: ⌃⌥⇧↩
-    static let fillAll = Shortcut(keyCode: returnKey, modifiers: [.control, .option, .shift])
+    /// `fill-window`: ⌥Space
+    static let fillWindow = Shortcut(keyCode: space, modifiers: [.option])
+    /// `fill-all`: ⌥⌘Space
+    static let fillAll = Shortcut(keyCode: space, modifiers: [.option, .command])
 
-    var displayString: String {
-        let f = modifierFlags
-        var s = ""
-        if f.contains(.control) { s += "⌃" }
-        if f.contains(.option) { s += "⌥" }
-        if f.contains(.shift) { s += "⇧" }
-        if f.contains(.command) { s += "⌘" }
-        return s + (keyCode == Self.returnKey ? "↩" : "#\(keyCode)")
-    }
 }
