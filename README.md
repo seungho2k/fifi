@@ -6,7 +6,7 @@ Window ▸ Fill doesn't handle well.
 ## What it does
 
 - **Fill window** (⌥Space): the focused window of the front app fills its screen's usable area,
-  with 16pt side margins and 8pt top/bottom.
+  with 8pt margins on every side (next to a shown Dock too).
 - **Fill all** (⌥⌘Space): every eligible window on the current desktop fills its screen, back to front.
 - **Fill new windows** (always on): a window another app opens is filled 0.3s
   after it appears, along with the windows an app opens as it launches. Only document windows
@@ -14,9 +14,8 @@ Window ▸ Fill doesn't handle well.
   windows. Dialogs, palettes and popups are left alone. A window that isn't ready yet is checked
   again after 0.7s and 1.5s. Adobe apps don't announce new windows, so fifi catches them when an
   unseen window becomes focused or main.
-- **Lined-up apps (KakaoTalk):** windows aren't widened. Each one fills the height at its
-  smallest width, and the app's windows line up left to right from the left edge, with the main
-  window first.
+- **KakaoTalk:** windows aren't widened. Each one fills the height at its smallest width at the
+  left edge, on top of each other.
 - With an auto-hiding Dock, the Dock's side always counts as free space.
 
 Needs the Accessibility permission. Launch at login is on after the first run. To quit,

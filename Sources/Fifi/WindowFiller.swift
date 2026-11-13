@@ -8,7 +8,7 @@ import ApplicationServices
 /// background queue with a short timeout, so a busy app can't stall fifi.
 final class WindowFiller: @unchecked Sendable {
     /// Space between the screen's sides and a filled window.
-    static let screenSideMargin: CGFloat = 16
+    static let screenSideMargin: CGFloat = 8
     /// Space above and below a filled window (inside the menu bar and Dock).
     static let screenVerticalMargin: CGFloat = 8
 
@@ -161,29 +161,12 @@ final class WindowFiller: @unchecked Sendable {
     // MARK: Lined-up apps
 
     /// Apps whose windows aren't widened by fill: each one fills the height at its smallest
-    /// width, and the app's windows line up left to right, its main window first. KakaoTalk's
-    /// chat windows are narrow by design, and a full-width one is mostly empty.
+    /// width at the left edge, on top of each other. KakaoTalk's chat windows are narrow by
+    /// design, and a full-width one is mostly empty.
     static let lineUpBundleIDs: Set<String> = ["com.kakao.KakaoTalkMac"]
-    /// The main window of a lined-up app (its `AXIdentifier`): KakaoTalk's friends/chats/more window.
-    static let lineUpMainWindowIDs: Set<String> = ["Main Window"]
-    /// Space between lined-up windows: none, they sit flush.
-    static let lineUpGap: CGFloat = 0
 
     static func linesUp(_ pid: pid_t) -> Bool {
         NSRunningApplication(processIdentifier: pid)?.bundleIdentifier.map(lineUpBundleIDs.contains) ?? false
-    }
-
-    /// Where the next lined-up window goes: at `x`, or as far right as still fits in `area`
-    /// (never left of it), so windows past the right end pile up at the end.
-    static func lineUpX(width: CGFloat, at x: CGFloat, in area: CGRect) -> CGFloat {
-        max(area.minX, min(x, area.maxX - width))
-    }
-
-    /// The order to line windows up in: main windows first, then left to right as they are.
-    static func lineUpOrder(isMain: [Bool], minX: [CGFloat]) -> [Int] {
-        isMain.indices.sorted { a, b in
-            isMain[a] != isMain[b] ? isMain[a] : minX[a] < minX[b]
-        }
     }
 
     /// Lines up `window` with the app's other windows on this desktop (queue only).
@@ -199,27 +182,14 @@ final class WindowFiller: @unchecked Sendable {
     }
 
     /// Lines up one app's windows on each screen (queue only): each fills the fill area's height
-    /// at its smallest width (asked for 1pt, the app clamps it), left to right from the area's
-    /// left edge.
+    /// at its smallest width (asked for 1pt, the app clamps it), at the area's left edge, on top
+    /// of each other.
     private func lineUpWindows(_ group: [(window: AXUIElement, current: CGRect)], screens: [ScreenArea]) {
-        var byScreen: [Int: [(window: AXUIElement, current: CGRect)]] = [:]
-        for item in group {
-            guard let i = screens.indices.max(by: { Self.overlap(screens[$0].frame, item.current) < Self.overlap(screens[$1].frame, item.current) })
+        for (window, current) in group {
+            guard let screen = screens.max(by: { Self.overlap($0.frame, current) < Self.overlap($1.frame, current) })
             else { continue }
-            byScreen[i, default: []].append(item)
-        }
-        for (i, items) in byScreen {
-            let area = Self.filledFrame(visible: screens[i].visible)
-            let isMain = items.map { Self.lineUpMainWindowIDs.contains(Self.attribute($0.window, kAXIdentifierAttribute) as? String ?? "") }
-            var x = area.minX
-            for k in Self.lineUpOrder(isMain: isMain, minX: items.map(\.current.minX)) {
-                let (window, current) = items[k]
-                Self.setFrame(CGRect(x: x, y: area.minY, width: 1, height: area.height), of: window, from: current)
-                let width = Self.frame(of: window)?.width ?? current.width
-                let placed = CGRect(x: Self.lineUpX(width: width, at: x, in: area), y: area.minY, width: width, height: area.height)
-                if placed.minX != x { Self.setFrame(placed, of: window) }
-                x = placed.maxX + Self.lineUpGap
-            }
+            let area = Self.filledFrame(visible: screen.visible)
+            Self.setFrame(CGRect(x: area.minX, y: area.minY, width: 1, height: area.height), of: window, from: current)
         }
     }
 
